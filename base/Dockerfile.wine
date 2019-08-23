@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM archlinux/base:latest
 
 ENV WINEARCH=win64 \
     WINEDEBUG=-all,err \ 
@@ -6,40 +6,25 @@ ENV WINEARCH=win64 \
     WINE_MONO_VERSION=4.9.2 \
     WINE_GECKO_VERSION=2.4.7
 
-COPY xvfb-start.sh /usr/bin/xvfb-start
-
-RUN export DEBIAN_FRONTEND="noninteractive" \
-    && echo "Configuring Ubuntu mirrors with German country code and required tools for Wine" \
-    && sed -i -e 's/http:\/\/archive/http:\/\/de.archive/' /etc/apt/sources.list \
-    && apt-get update \
-    && apt-get install -y \
-        gnupg2 \
-        ca-certificates \
-        curl \
-        xvfb \
+RUN echo "Configuring multilib mirrors for Wine" \
+    && curl -L https://www.archlinux.org/mirrorlist/all/ -o /etc/pacman.d/mirrorlist  \
+    && sed -i 's/#S/S/g' /etc/pacman.d/mirrorlist \
+    && sed -i 's/#\[multilib\]/\[multilib\]/' /etc/pacman.conf \
+    && sed -i 's/#Include/Include/' /etc/pacman.conf \
+    && echo "Installing Wine, Winetricks and the required packages" \
+    && pacman -Sy --noconfirm \
+        grep \
         p7zip \
         unzip \
         zenity \
         cabextract \
         binutils \
-        winbind \
-    && echo "Configuring WineHQ mirror" \
-    && curl -L https://dl.winehq.org/wine-builds/winehq.key -o /etc/apt/winehq.key \
-    && apt-key add /etc/apt/winehq.key \
-    && echo "deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main" >> /etc/apt/sources.list \
-    && dpkg --add-architecture i386 \
-    && apt-get update \
-    && apt-get install -y \
-        winehq-stable \
-    && echo "Download winetricks" \
-    && curl -L https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks -o /usr/local/bin/winetricks \
-    && chmod +rx /usr/local/bin/winetricks \
+        samba \
+        wine-staging \
+        winetricks \
     && echo "Cleaning system" \
-    && apt-get autoclean \
-    && apt-get clean \
-    && apt-get autoremove --purge \
-    && rm -rf /var/apt/cache/* \
-    && rm -rf /tmp/*  \
+    && rm -rf /var/cache/pacman/ \
+    && rm -rf /tmp/* \
     && echo "Creating wine user" \
     && mkdir -p /home/wine \
     && useradd --system -d /home/wine --shell /bin/bash --uid 1000 --gid root wine \
@@ -66,6 +51,6 @@ RUN echo "Download wine extension packages for user" \
     && echo "Deleting cache files" \
     && rm -rf /home/wine/.cache
 
-ENTRYPOINT [ "wine" ]
+ENTRYPOINT [ "wine64" ]
 
 CMD [ "cmd" ]

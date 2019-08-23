@@ -1,4 +1,4 @@
-FROM docker-wine:4.0-stable
+FROM docker-wine:4.14-staging
 
 WORKDIR /home/wine/.wine/drive_c
 
