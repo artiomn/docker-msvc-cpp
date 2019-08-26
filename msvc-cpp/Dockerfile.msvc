@@ -2,6 +2,7 @@ FROM docker-wine:4.14-staging
 
 WORKDIR /home/wine/.wine/drive_c
 
+COPY --chown=wine:root bashrc /home/wine/.bashrc
 COPY --chown=wine:root msvcenv_x86.bat /home/wine/.wine/drive_c/Tools/msvcenv_x86.bat
 COPY --chown=wine:root msvcenv_x64.bat /home/wine/.wine/drive_c/Tools/msvcenv_x64.bat
  
